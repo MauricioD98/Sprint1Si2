@@ -1,19 +1,19 @@
 # accounts/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.core.paginator import Paginator
-from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group, Permission
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django import forms
+from .models import Cliente, User
+from .forms import ClientePersonaForm, ClienteEmpresaForm, ClienteUpdateForm, UserUpdateForm
 
 # ---------------------------------------------------------------------
 # Configura qué apps del proyecto mostrar en la pantalla de permisos.
 # Déjalo en [] o None si quieres ver TODOS los permisos del sistema.
 PROJECT_APPS = ["accounts", "gestdocu"]
 # ---------------------------------------------------------------------
-
-User = get_user_model()
 
 # =========================
 #         FORMS
@@ -36,7 +36,7 @@ class RolePermissionsForm(forms.Form):
 
 
 # =========================
-#      VISTAS: ROLES
+#         VISTAS
 # =========================
 @login_required
 @permission_required("auth.view_group", raise_exception=True)
@@ -104,17 +104,20 @@ def role_permissions(request, pk: int):
     """
     role = get_object_or_404(Group, pk=pk)
 
+    # Base queryset de permisos
     qs = Permission.objects.select_related("content_type").order_by(
         "content_type__app_label", "content_type__model", "codename"
     )
+    # Filtra por apps del proyecto si se configuró
     if PROJECT_APPS:
         qs = qs.filter(content_type__app_label__in=PROJECT_APPS)
 
+    # Instanciamos el form y le inyectamos el queryset filtrado
     form = RolePermissionsForm(request.POST or None)
     form.fields["permissions"].queryset = qs
     form.fields["permissions"].initial = role.permissions.values_list("id", flat=True)
 
-    # Agrupar para el template
+    # Agrupar permisos para el template (app -> modelo -> lista permisos)
     grouped = {}
     for perm in qs:
         app = perm.content_type.app_label
@@ -122,8 +125,7 @@ def role_permissions(request, pk: int):
         grouped.setdefault(app, {}).setdefault(model, []).append(perm)
 
     if request.method == "POST" and form.is_valid():
-        role.permissions.set(form.cleaned_data["permissions"])
-        messages.success(request, "Permisos actualizados.")
+        role.permissions.set(form.cleaned_data["permissions"])  # reemplaza asignaciones
         return redirect("accounts:roles_list")
 
     ctx = {
@@ -136,75 +138,135 @@ def role_permissions(request, pk: int):
 
 
 # =========================
-#     VISTAS: USUARIOS
+#    VISTAS CRUD CLIENTES
 # =========================
-@login_required
-@permission_required("accounts.view_user", raise_exception=True)
-def user_list(request):
-    """Listado con búsqueda y paginación."""
-    q = request.GET.get("q", "").strip()
-    users = User.objects.all().order_by("-date_joined")
-    if q:
-        users = users.filter(username__icontains=q) | users.filter(email__icontains=q)
-
-    paginator = Paginator(users, 10)
-    page = request.GET.get("page")
-    users_page = paginator.get_page(page)
-    return render(request, "accounts/users.html", {"users": users_page, "q": q})
-
 
 @login_required
-@permission_required("accounts.add_user", raise_exception=True)
-def user_create(request):
-    """Crear usuario y asignar roles (grupos)."""
-    from .forms import UserCreateForm
-    if request.method == "POST":
-        form = UserCreateForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            messages.success(request, f"Usuario '{user.username}' creado.")
-            return redirect("accounts:user_list")
+def clientes_list(request):
+    """Lista de clientes con paginación y búsqueda."""
+    search = request.GET.get('search', '')
+    tipo_filter = request.GET.get('tipo', '')
+    clasificacion_filter = request.GET.get('clasificacion', '')
+    
+    queryset = Cliente.objects.select_related('user').all()
+    
+    # Filtros de búsqueda
+    if search:
+        queryset = queryset.filter(
+            Q(user__nombres__icontains=search) |
+            Q(user__apellido_paterno__icontains=search) |
+            Q(user__apellido_materno__icontains=search) |
+            Q(user__ci__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(nombre_empresa__icontains=search) |
+            Q(nit__icontains=search)
+        )
+    
+    if tipo_filter:
+        queryset = queryset.filter(tipo_cliente=tipo_filter)
+        
+    if clasificacion_filter:
+        queryset = queryset.filter(clasificacion_procesal=clasificacion_filter)
+    
+    queryset = queryset.order_by('-user__date_joined')
+    
+    # Paginación
+    paginator = Paginator(queryset, 10)  # 10 clientes por página
+    page = request.GET.get('page')
+    clientes = paginator.get_page(page)
+    
+    context = {
+        'clientes': clientes,
+        'search': search,
+        'tipo_filter': tipo_filter,
+        'clasificacion_filter': clasificacion_filter,
+        'tipos': Cliente.TIPO,
+        'clasificaciones': Cliente.CLASIFICACION,
+    }
+    return render(request, 'accounts/clientes_list.html', context)
+
+
+@login_required
+def cliente_detail(request, pk):
+    """Vista detalle de un cliente."""
+    cliente = get_object_or_404(Cliente, pk=pk)
+    context = {'cliente': cliente}
+    return render(request, 'accounts/cliente_detail.html', context)
+
+
+@login_required
+def cliente_create(request):
+    """Vista para crear un nuevo cliente (persona o empresa)."""
+    tipo = request.GET.get('tipo', 'PERSONA')
+    
+    if tipo == 'EMPRESA':
+        FormClass = ClienteEmpresaForm
+        template_title = 'Registrar Cliente - Empresa'
     else:
-        form = UserCreateForm()
-    return render(request, "accounts/user_form.html", {"form": form, "title": "Nuevo usuario"})
-
-
-@login_required
-@permission_required("accounts.change_user", raise_exception=True)
-def user_edit(request, pk: int):
-    """Editar datos de usuario y sus roles."""
-    from .forms import UserUpdateForm
-    user = get_object_or_404(User, pk=pk)
-
-    # Evitar que un usuario no-superuser edite superusuarios
-    if user.is_superuser and not request.user.is_superuser:
-        messages.error(request, "No tienes permisos para editar un superusuario.")
-        return redirect("accounts:user_list")
-
-    if request.method == "POST":
-        form = UserUpdateForm(request.POST, instance=user)
+        FormClass = ClientePersonaForm
+        template_title = 'Registrar Cliente - Persona Natural'
+    
+    if request.method == 'POST':
+        form = FormClass(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Usuario '{user.username}' actualizado.")
-            return redirect("accounts:user_list")
+            try:
+                cliente = form.save()
+                messages.success(request, f'Cliente {cliente.user.nombre_completo} registrado exitosamente.')
+                return redirect('accounts:cliente_detail', pk=cliente.pk)
+            except Exception as e:
+                messages.error(request, f'Error al registrar cliente: {str(e)}')
     else:
-        form = UserUpdateForm(instance=user)
-    return render(request, "accounts/user_form.html", {"form": form, "title": f"Editar: {user.username}"})
+        form = FormClass()
+    
+    context = {
+        'form': form,
+        'title': template_title,
+        'tipo': tipo
+    }
+    return render(request, 'accounts/cliente_form.html', context)
 
 
 @login_required
-@permission_required("accounts.delete_user", raise_exception=True)
-def user_delete(request, pk: int):
-    """Eliminar usuario (no permite borrar superusuarios)."""
-    user = get_object_or_404(User, pk=pk)
+def cliente_update(request, pk):
+    """Vista para actualizar un cliente existente."""
+    cliente = get_object_or_404(Cliente, pk=pk)
+    
+    if request.method == 'POST':
+        cliente_form = ClienteUpdateForm(request.POST, instance=cliente)
+        user_form = UserUpdateForm(request.POST, instance=cliente.user)
+        
+        if cliente_form.is_valid() and user_form.is_valid():
+            user_form.save()
+            cliente_form.save()
+            messages.success(request, f'Cliente {cliente.user.nombre_completo} actualizado exitosamente.')
+            return redirect('accounts:cliente_detail', pk=cliente.pk)
+    else:
+        cliente_form = ClienteUpdateForm(instance=cliente)
+        user_form = UserUpdateForm(instance=cliente.user)
+    
+    context = {
+        'cliente_form': cliente_form,
+        'user_form': user_form,
+        'cliente': cliente,
+        'title': f'Editar Cliente: {cliente.user.nombre_completo}'
+    }
+    return render(request, 'accounts/cliente_update.html', context)
 
-    if user.is_superuser:
-        messages.error(request, "No puedes eliminar un superusuario.")
-        return redirect("accounts:user_list")
 
-    if request.method == "POST":
-        username = user.username
-        user.delete()
-        messages.success(request, f"Usuario '{username}' eliminado.")
-        return redirect("accounts:user_list")
-    return render(request, "accounts/user_confirm_delete.html", {"user_obj": user})
+@login_required
+def cliente_delete(request, pk):
+    """Vista para eliminar un cliente."""
+    cliente = get_object_or_404(Cliente, pk=pk)
+    
+    if request.method == 'POST':
+        nombre = cliente.user.nombre_completo
+        # Eliminar usuario también eliminará el cliente por CASCADE
+        cliente.user.delete()
+        messages.success(request, f'Cliente {nombre} eliminado exitosamente.')
+        return redirect('accounts:clientes_list')
+    
+    context = {
+        'cliente': cliente,
+        'title': f'Eliminar Cliente: {cliente.user.nombre_completo}'
+    }
+    return render(request, 'accounts/cliente_confirm_delete.html', context)
