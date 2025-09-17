@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista de Expedientes</title>
+    <link rel="stylesheet" href="{% static 'css/casostyle.css' %}">
+</head>
+<body>
+    <h1>Vista Expedientes</h1>
+{% if expedientes %}
+<table border="1" cellpadding="10" cellspacing="0">
+    <thead>
+        <tr>
+        
+            <th>Nro Expediente</th>
+            <th>Fecha Creacion</th>
+            <th>Fecha Cierre</th>
+            <th>Autoridad</th>
+            <th>Estado</th>
+            <th>Observaciones</th>
+           
+        </tr>
+    </thead>
+    <tbody>
+        {% for expediente in expedientes %}
+        <tr>
+            
+            <td>{{ expediente.nro_expediente }}</td>
+            <td>{{ expediente.fecha_de_creacion }}</td>
+            <td>{{ expediente.Fecha_de_cierre }}</td>
+            <td>{{ expediente.autoridad }}</td>
+            <td>{{ expediente.estado }}</td>
+            <td>{{ expediente.observaciones }}</td>
+           
+            <td>
+                <a href="/casos/eliminar_expediente/{{ expediente.id }}">
+                    <button>Eliminar</button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p>No hay expedientes registrados.</p>
+{% endif %}
+
+<br>
+
+<a href="/casos/expedientes/vista">
+    <button>Ver Casos</button>
+</a>
+</body>
+</html>
