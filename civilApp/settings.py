@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'accounts',
     'gestdocu',
     'visualizacion_expedientes',
+    'casos',
+    'rest_framework',
 ]
 
 
@@ -78,9 +80,9 @@ WSGI_APPLICATION = 'civilApp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'gestdocum'),
+        'NAME': os.getenv('DB_NAME', 'si2'),
         'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Ics2606'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }

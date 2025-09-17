@@ -105,19 +105,22 @@ def role_permissions(request, pk: int):
     role = get_object_or_404(Group, pk=pk)
 
     # Base queryset de permisos
+    # Base queryset de permisos
     qs = Permission.objects.select_related("content_type").order_by(
         "content_type__app_label", "content_type__model", "codename"
     )
+    # Filtra por apps del proyecto si se configuró
     # Filtra por apps del proyecto si se configuró
     if PROJECT_APPS:
         qs = qs.filter(content_type__app_label__in=PROJECT_APPS)
 
     # Instanciamos el form y le inyectamos el queryset filtrado
+    # Instanciamos el form y le inyectamos el queryset filtrado
     form = RolePermissionsForm(request.POST or None)
     form.fields["permissions"].queryset = qs
     form.fields["permissions"].initial = role.permissions.values_list("id", flat=True)
 
-    # Agrupar permisos para el template (app -> modelo -> lista permisos)
+    # Agrupar permisos permisos para el template (app -> modelo -> lista permisos) (app -> modelo -> lista permisos)
     grouped = {}
     for perm in qs:
         app = perm.content_type.app_label

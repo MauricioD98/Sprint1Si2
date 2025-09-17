@@ -74,14 +74,15 @@
               </div>
             </div>
           </li>
-          
+
           <!-- NUEVO: Sección de Gestionar Documentos -->
           <li class="accordion">
             <a href="#" data-toggle="collapse" data-target="#gestionDocumentos" aria-expanded="false"
               aria-controls="gestionDocumentos" class="collapsible">
               <span class="fas fa-folder-open mr-3"></span>Gestionar Documentos
             </a>
-            <div id="gestionDocumentos" class="collapse" aria-labelledby="headingTwo"> {# Cambiado ID y aria-labelledby #}
+            <div id="gestionDocumentos" class="collapse" aria-labelledby="headingTwo"> {# Cambiado ID y aria-labelledby
+              #}
               <div>
                 <ul>
                   <li><a href="{% url 'documento_list' %}">Documentos</a></li>
@@ -92,7 +93,26 @@
               </div>
             </div>
           </li>
-          
+
+
+          <!-- Casos y expedientes -->
+
+          <li class="accordion">
+            <a href="#" data-toggle="collapse" data-target="#gestionCasos" aria-expanded="false"
+              aria-controls="gestionCasos" class="collapsible">
+              <span class="fas fa-folder-open mr-3"></span>Gestionar Casos y expedientes
+            </a>
+            <div id="gestionCasos" class="collapse" aria-labelledby="headingTwo"> {# Cambiado ID y aria-labelledby #}
+              <div>
+                <ul>
+                  <li><a href="{% url 'casos' %}">Casos</a></li>
+                  <li><a href="{% url 'expedientes' %}">Expedientes</a></li>
+
+                </ul>
+              </div>
+            </div>
+          </li>
+
           <li><a href="#"><span class="icon-notifications mr-3"></span>Notifications</a></li>
           <li><a href="#"><span class="icon-location-arrow mr-3"></span>Direct</a></li>
           <li><a href="#"><span class="icon-pie-chart mr-3"></span>Stats</a></li>
@@ -123,4 +143,5 @@
   <!-- Tus scripts -->
   <script src="{% static 'js/sidebar.js' %}"></script>
 </body>
+
 </html>
