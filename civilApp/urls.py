@@ -14,6 +14,9 @@ urlpatterns = [
     path("accounts/login/", auth_views.LoginView.as_view(template_name="accounts/login.html"), name="login"),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
 
+    # Incluye las URLs de tu nueva aplicación
+    path("expedientes/", include("visualizacion_expedientes.urls")), # <--- Añade esta línea
+
 ]
 
 # Servir archivos subidos en DEV

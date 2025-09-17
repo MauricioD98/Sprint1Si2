@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ form_title }}</h1>
+    
+    {% if messages %}
+        <ul class="messages list-unstyled">
+            {% for message in messages %}
+                <li {% if message.tags %} class="{{ message.tags }} alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_caso" class="form-label">Caso:</label>
+            <select class="form-control" id="id_caso" name="caso" required>
+                <option value="">Seleccione un caso</option>
+                {% for caso_item in casos %}
+                    <option value="{{ caso_item.pk }}" {% if serializer.data.caso == caso_item.pk %}selected{% endif %}>
+                        {{ caso_item.nro_caso }} - {{ caso_item.tipo_de_caso|default:caso_item.descripcion|truncatechars:50 }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if serializer.caso.errors %}
+                <div class="invalid-feedback d-block">{{ serializer.caso.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_cliente" class="form-label">Cliente:</label>
+            <select class="form-control" id="id_cliente" name="cliente" required>
+                <option value="">Seleccione un cliente</option>
+                {% for cliente_item in clientes %}
+                    <option value="{{ cliente_item.pk }}" {% if serializer.data.cliente == cliente_item.pk %}selected{% endif %}>
+                        {{ cliente_item.user.nombre_completo }} ({{ cliente_item.get_tipo_cliente_display }})
+                    </option>
+                {% endfor %}
+            </select>
+            {% if serializer.cliente.errors %}
+                <div class="invalid-feedback d-block">{{ serializer.cliente.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_rol_procesal" class="form-label">Rol Procesal:</label>
+            <input type="text" class="form-control" id="id_rol_procesal" name="rol_procesal" value="{{ serializer.data.rol_procesal|default:'' }}">
+            {% if serializer.rol_procesal.errors %}
+                <div class="invalid-feedback d-block">{{ serializer.rol_procesal.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_fecha_incorporacion" class="form-label">Fecha de Incorporación:</label>
+            <input type="date" class="form-control" id="id_fecha_incorporacion" name="fecha_incorporacion" value="{{ serializer.data.fecha_incorporacion|date:'Y-m-d'|default:'' }}">
+            {% if serializer.fecha_incorporacion.errors %}
+                <div class="invalid-feedback d-block">{{ serializer.fecha_incorporacion.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_estado_participacion" class="form-label">Estado de Participación:</label>
+            <select class="form-control" id="id_estado_participacion" name="estado_participacion">
+                {% comment %}
+                    Solución temporal: si choices es una tupla plana (valor, etiqueta, valor, etiqueta...),
+                    iteramos por índice y tomamos de a pares.
+                {% endcomment %}
+                {% for item in serializer.fields.estado_participacion.choices %}
+                    {% if forloop.counter0|divisibleby:2 %}
+                        {% with choice_value=item choice_label=serializer.fields.estado_participacion.choices|slice:forloop.counter0|add:1|slice:":1"|first %}
+                            <option value="{{ choice_value }}" {% if serializer.data.estado_participacion == choice_value %}selected{% endif %}>
+                                {{ choice_label }}
+                            </option>
+                        {% endwith %}
+                    {% endif %}
+                {% empty %}
+                    <option value="">Sin opciones disponibles</option>
+                {% endfor %}
+            </select>
+            {% if serializer.estado_participacion.errors %}
+                <div class="invalid-feedback d-block">{{ serializer.estado_participacion.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{% url 'tiene_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

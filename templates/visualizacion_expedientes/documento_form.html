@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ form_title }}</h1>
+    
+    {% if messages %}
+        <ul class="messages list-unstyled">
+            {% for message in messages %}
+                <li {% if message.tags %} class="{{ message.tags }} alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_nombre" class="form-label">Nombre:</label>
+            <input type="text" class="form-control" id="id_nombre" name="nombre" value="{{ serializer.data.nombre|default:'' }}" required>
+            {% if serializer.nombre.errors %} {# CAMBIO AQUÍ #}
+                <div class="invalid-feedback d-block">{{ serializer.nombre.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_expediente" class="form-label">Expediente:</label>
+            <select class="form-control" id="id_expediente" name="expediente" required>
+                <option value="">Seleccione un expediente</option>
+                {% for exp in expedientes %}
+                    <option value="{{ exp.pk }}" {% if serializer.data.expediente == exp.pk %}selected{% endif %}> {# CAMBIO AQUÍ #}
+                        {{ exp.codigo }} (Caso: {{ exp.caso.nro_caso }})
+                    </option>
+                {% endfor %}
+            </select>
+            {% if serializer.expediente.errors %} {# CAMBIO AQUÍ #}
+                <div class="invalid-feedback d-block">{{ serializer.expediente.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_tipo" class="form-label">Tipo de Documento:</label>
+            <select class="form-control" id="id_tipo" name="tipo" required>
+                <option value="">Seleccione un tipo</option>
+                {% for tipo_doc in tipos_documento %} {# Renombrado a tipo_doc para evitar posible conflicto, aunque no es la causa del error actual #}
+                    <option value="{{ tipo_doc.pk }}" {% if serializer.data.tipo == tipo_doc.pk %}selected{% endif %}> {# CAMBIO AQUÍ #}
+                        {{ tipo_doc.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if serializer.tipo.errors %} {# CAMBIO AQUÍ #}
+                <div class="invalid-feedback d-block">{{ serializer.tipo.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_archivo" class="form-label">Archivo:</label>
+            <input type="file" class="form-control" id="id_archivo" name="archivo">
+            {% if serializer.instance.archivo %}
+                <small class="form-text text-muted">Archivo actual: <a href="{{ serializer.instance.archivo.url }}" target="_blank">{{ serializer.instance.archivo.name }}</a></small>
+                <br>
+            {% endif %}
+            {% if serializer.archivo.errors %} {# CAMBIO AQUÍ #}
+                <div class="invalid-feedback d-block">{{ serializer.archivo.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_observaciones" class="form-label">Observaciones:</label>
+            <textarea class="form-control" id="id_observaciones" name="observaciones" rows="3">{{ serializer.data.observaciones|default:'' }}</textarea> {# CAMBIO AQUÍ #}
+            {% if serializer.observaciones.errors %} {# CAMBIO AQUÍ #}
+                <div class="invalid-feedback d-block">{{ serializer.observaciones.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{% url 'documento_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

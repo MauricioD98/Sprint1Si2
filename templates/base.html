@@ -74,6 +74,25 @@
               </div>
             </div>
           </li>
+          
+          <!-- NUEVO: Sección de Gestionar Documentos -->
+          <li class="accordion">
+            <a href="#" data-toggle="collapse" data-target="#gestionDocumentos" aria-expanded="false"
+              aria-controls="gestionDocumentos" class="collapsible">
+              <span class="fas fa-folder-open mr-3"></span>Gestionar Documentos
+            </a>
+            <div id="gestionDocumentos" class="collapse" aria-labelledby="headingTwo"> {# Cambiado ID y aria-labelledby #}
+              <div>
+                <ul>
+                  <li><a href="{% url 'documento_list' %}">Documentos</a></li>
+                  <li><a href="{% url 'tipo_documento_list' %}">Tipos de Documento</a></li>
+                  <li><a href="{% url 'tiene_list' %}">Relaciones Caso-Cliente</a></li>
+                  <li><a href="{% url 'expedientes_jerarquicos' %}">Visualización Jerárquica</a></li>
+                </ul>
+              </div>
+            </div>
+          </li>
+          
           <li><a href="#"><span class="icon-notifications mr-3"></span>Notifications</a></li>
           <li><a href="#"><span class="icon-location-arrow mr-3"></span>Direct</a></li>
           <li><a href="#"><span class="icon-pie-chart mr-3"></span>Stats</a></li>
