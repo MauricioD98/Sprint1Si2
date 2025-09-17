@@ -22,6 +22,9 @@ urlpatterns = [
     path('casos/expedientes/vista_expediente',views.vista_expediente),
     path('casos/eliminar_expediente/<int:id>',views.eliminar_expediente),
 
+    # Incluye las URLs de tu nueva aplicación
+    path("expedientes/", include("visualizacion_expedientes.urls")), # <--- Añade esta línea
+
 ]
 
 # Servir archivos subidos en DEV

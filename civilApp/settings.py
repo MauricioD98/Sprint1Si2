@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # === Paths ===
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'pages',
     'accounts',
     'gestdocu',
-    'casos',
+    'visualizacion_expedientes',
 ]
 
 
@@ -73,26 +73,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'civilApp.wsgi.application'
 
 
-# === Base de datos (SQLite para desarrollo) ===
-# Para PostgreSQL, descomenta la configuración de abajo y comenta SQLite
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# === Configuración PostgreSQL (comentada temporalmente) ===
+# === Base de datos (PostgreSQL) ===
+# === Base de datos (PostgreSQL) ===
 DATABASES = {
-     'default': {
-         'ENGINE': 'django.db.backends.postgresql',
-         'NAME': 'si2',
-         'USER': 'postgres',
-         'PASSWORD': 'Ics2606',
-         'HOST': 'localhost',
-         'PORT': '5432',
-     }
- }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'gestdocum'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+    }
+}
 
 
 # === Validación de contraseñas ===

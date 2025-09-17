@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Relación Caso-Cliente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Eliminar Relación Caso-Cliente</h1>
+    <div class="alert alert-warning" role="alert">
+        <p>¿Estás seguro de que quieres eliminar la relación del cliente "<strong>{{ tiene_instance.cliente.user.nombre_completo }}</strong>" con el caso "

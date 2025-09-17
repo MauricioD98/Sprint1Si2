@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ form_title }}</h1>
+    
+    {% if messages %}
+        <ul class="messages list-unstyled">
+            {% for message in messages %}
+                <li {% if message.tags %} class="{{ message.tags }} alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_nombre" class="form-label">Nombre:</label>
+            <input type="text" class="form-control" id="id_nombre" name="nombre" value="{{ serializer.data.nombre|default:'' }}" required> {# CAMBIO AQUÍ #}
+            {% if serializer.nombre.errors %} {# CAMBIO AQUÍ #}
+                <div class="invalid-feedback d-block">{{ serializer.nombre.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="id_descripcion" class="form-label">Descripción:</label>
+            <textarea class="form-control" id="id_descripcion" name="descripcion" rows="3">{{ serializer.data.descripcion|default:'' }}</textarea> {# CAMBIO AQUÍ #}
+            {% if serializer.descripcion.errors %} {# CAMBIO AQUÍ #}
+                <div class="invalid-feedback d-block">{{ serializer.descripcion.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{% url 'tipo_documento_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
