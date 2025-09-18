@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Registrar Expediente{% endblock %}
 {% block content %}
-<h1>Bienvenidos Expedientes</h1>
-<h1>Registrar Casos</h1>
+<h1>Crear Expedientes</h1>
 <form method="POST">
     {% csrf_token %} 
     {{ form }}
