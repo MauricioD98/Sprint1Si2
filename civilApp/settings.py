@@ -15,9 +15,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # === Seguridad (IMPORTANTE en producción) ===
-SECRET_KEY = 'django-insecure-eq$c3^lr17r6btsvw^fh2@@cg73a)m#u*h!@&5@$i*mz@3buz)'
-DEBUG = True
-ALLOWED_HOSTS = []  # en prod, agrega tu dominio o IP
+SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = False
+ALLOWED_HOSTS = ['*']  # en prod, agrega tu dominio o IP
 
 
 # === Aplicaciones instaladas ===
@@ -119,6 +119,9 @@ USE_TZ = True
 
 # === Archivos estáticos (CSS, JS, imágenes globales) ===
 STATIC_URL = 'static/'
+
+STATIC_ROOT= os.path.join(BASE_DIR, 'staticfiles')
+
 STATICFILES_DIRS = [BASE_DIR / 'static']  # carpeta global de estáticos
 STATIC_ROOT = BASE_DIR / 'staticfiles'    # para producción (collectstatic)
 
