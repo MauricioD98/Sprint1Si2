@@ -2,6 +2,9 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from .models import User, Cliente
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from .models import User
 
 
 class BaseClienteForm(forms.ModelForm):
@@ -245,13 +248,40 @@ class ClienteUpdateForm(forms.ModelForm):
             self.fields['nit'].widget.attrs['style'] = 'display:none;'
 
 
-class UserUpdateForm(forms.ModelForm):
-    """Formulario para actualizar datos del usuario asociado al cliente"""
-    
+class UserWithRolesUpdateForm(forms.ModelForm):
+    """Datos personales + roles"""
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Roles"
+    )
+
     class Meta:
         model = User
-        fields = ['nombres', 'apellido_paterno', 'apellido_materno', 'email', 
-                 'celular', 'direccion', 'fecha_nacimiento']
+        fields = [
+            'nombres', 'apellido_paterno', 'apellido_materno', 'email',
+            'celular', 'direccion', 'fecha_nacimiento', 'groups'
+        ]
+        widgets = {
+            'nombres': forms.TextInput(attrs={'class': 'form-control'}),
+            # ...otros widgets...
+        }
+
+class UserUpdateForm(forms.ModelForm):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Roles"
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'nombres', 'apellido_paterno', 'apellido_materno', 'email',
+            'celular', 'direccion', 'fecha_nacimiento', 'groups'
+        ]
         widgets = {
             'nombres': forms.TextInput(attrs={'class': 'form-control'}),
             'apellido_paterno': forms.TextInput(attrs={'class': 'form-control'}),
@@ -262,5 +292,49 @@ class UserUpdateForm(forms.ModelForm):
             'fecha_nacimiento': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
-            })
+            }),
         }
+
+
+class UserCreateForm(forms.ModelForm):
+    password1 = forms.CharField(label="Contraseña", widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    password2 = forms.CharField(label="Confirmar contraseña", widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Roles"
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'username', 'nombres', 'apellido_paterno', 'apellido_materno', 'email',
+            'celular', 'direccion', 'fecha_nacimiento', 'groups'
+        ]
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombres': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido_paterno': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido_materno': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'celular': forms.TextInput(attrs={'class': 'form-control'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', "Las contraseñas no coinciden.")
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user

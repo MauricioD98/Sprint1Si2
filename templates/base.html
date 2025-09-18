@@ -40,12 +40,12 @@
         <img src="{% static 'img/person_4.jpg' %}" alt="Image" class="img-fluid">
         <h3 class="name">{{ user.username }}</h3>
         <span class="country">
-        {% if user.is_authenticated and user.groups.all %}
-            {{ user.groups.first.name }}
-        {% else %}
-            Sin rol
-        {% endif %}
-    </span>
+          {% if user.is_authenticated and user.groups.all %}
+          {{ user.groups.first.name }}
+          {% else %}
+          Sin rol
+          {% endif %}
+        </span>
       </div>
 
       <div class="nav-menu">
@@ -60,7 +60,7 @@
                 <ul>
                   <li><a href="{% url 'accounts:roles_list' %}">Roles</a></li>
                   <li><a href="{% url 'accounts:user_list' %}">Usuarios</a></li>
-                  <li><a href="#">Crear Usuarios</a></li>
+                  <li><a href="{% url 'accounts:user_create' %}">Crear Usuarios</a></li>
                 </ul>
               </div>
             </div>
@@ -121,10 +121,17 @@
             </div>
           </li>
 
-          <li><a href="#"><span class="icon-notifications mr-3"></span>Notifications</a></li>
+          <!--           <li><a href="#"><span class="icon-notifications mr-3"></span>Notifications</a></li>
           <li><a href="#"><span class="icon-location-arrow mr-3"></span>Direct</a></li>
-          <li><a href="#"><span class="icon-pie-chart mr-3"></span>Stats</a></li>
-          <li><a href="{% url 'logout' %}"><span class="icon-sign-out mr-3"></span>Cerrar Sesion</a></li>
+          <li><a href="#"><span class="icon-pie-chart mr-3"></span>Stats</a></li> -->
+          <li>
+            <form id="logout-form" action="{% url 'logout' %}" method="post" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link" style="padding:0; color:inherit; text-align:left;">
+                <span class="icon-sign-out mr-3"></span>Cerrar Sesion
+              </button>
+            </form>
+          </li>
         </ul>
       </div>
     </div>

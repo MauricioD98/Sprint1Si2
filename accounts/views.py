@@ -179,7 +179,7 @@ def user_create(request):
 @permission_required("accounts.change_user", raise_exception=True)
 def user_edit(request, pk: int):
     """Editar datos de usuario y sus roles."""
-    from .forms import UserUpdateForm
+    from .forms import UserWithRolesUpdateForm
     user = get_object_or_404(User, pk=pk)
 
     # Evitar que un usuario no-superuser edite superusuarios
@@ -188,13 +188,13 @@ def user_edit(request, pk: int):
         return redirect("accounts:user_list")
 
     if request.method == "POST":
-        form = UserUpdateForm(request.POST, instance=user)
+        form = UserWithRolesUpdateForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
             messages.success(request, f"Usuario '{user.username}' actualizado.")
             return redirect("accounts:user_list")
     else:
-        form = UserUpdateForm(instance=user)
+        form = UserWithRolesUpdateForm(instance=user)
     return render(request, "accounts/user_form.html", {"form": form, "title": f"Editar: {user.username}"})
 
 
