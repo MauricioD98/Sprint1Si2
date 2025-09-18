@@ -1,17 +1,11 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Lista de Casos</title>
-    <link rel="stylesheet" href="{% static 'css/casostyle.css' %}">
-</head>
-<body>
-    <h1>Vista Casos</h1>
+{% extends "base.html" %}
+{% block title %}Lista de Casos{% endblock %}
+{% block content %}
+<h1>Vista Casos</h1>
 {% if casos %}
 <table border="1" cellpadding="10" cellspacing="0">
     <thead>
         <tr>
-        
             <th>Nro Caso</th>
             <th>Fecha Inicio</th>
             <th>Fecha Finalización</th>
@@ -36,7 +30,7 @@
             <td>{{ caso.tipo_de_caso }}</td>
             <td>{{ caso.prioridad }}</td>
             <td>
-                <a href="/casos/eliminar/{{ caso.id }}">
+                <a href="{% url 'eliminar_caso' caso.id %}">
                     <button>Eliminar</button>
                 </a>
             </td>
@@ -50,11 +44,10 @@
 
 <br>
 
-<a href="/casos/">
+<a href="{% url 'casos' %}">
     <button>Crear Caso</button>
 </a>
-<a href="/casos/expedientes/vista_expediente">
+<a href="{% url 'vista_expediente' %}">
     <button>Ver Expediente</button>
 </a>
-</body>
-</html>
+{% endblock %}

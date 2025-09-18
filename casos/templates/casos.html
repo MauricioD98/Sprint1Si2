@@ -1,6 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Registrar Casos{% endblock %}
+{% block content %}
 <h1>Registrar Casos</h1>
 <form method="POST">
     {% csrf_token %} 
-{{form}}
-<button>Crear Caso</button>
+    {{ form }}
+    <button>Crear Caso</button>
 </form>
+{% endblock %}
