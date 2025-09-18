@@ -15,12 +15,12 @@ urlpatterns = [
     path("accounts/login/", auth_views.LoginView.as_view(template_name="accounts/login.html"), name="login"),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     #urls casos
-    path('casos/',views.casos),#url de casos
-    path('casos/expedientes/',views.expedientes), #url de expedientes
-    path('casos/expedientes/vista',views.vista),
-    path('casos/eliminar/<int:id>',views.eliminar_caso),
-    path('casos/expedientes/vista_expediente',views.vista_expediente),
-    path('casos/eliminar_expediente/<int:id>',views.eliminar_expediente),
+    path('casos/',views.casos, name = "casos"),#url de casos
+    path('casos/expedientes/',views.expedientes, name = "expedientes"), #url de expedientes
+    path('casos/expedientes/vista',views.vista, name = "vista_casos"),
+    path('casos/eliminar/<int:id>',views.eliminar_caso, name = "eliminar_caso"),
+    path('casos/expedientes/vista_expediente',views.vista_expediente, name = "vista_expediente"),
+    path('casos/eliminar_expediente/<int:id>',views.eliminar_expediente, name = "eliminar_expediente"),
 
     # Incluye las URLs de tu nueva aplicación
     path("expedientes/", include("visualizacion_expedientes.urls")), # <--- Añade esta línea

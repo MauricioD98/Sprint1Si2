@@ -140,6 +140,82 @@ def role_permissions(request, pk: int):
     return render(request, "accounts/role_permissions.html", ctx)
 
 
+
+# =========================
+#     VISTAS: USUARIOS
+# =========================
+@login_required
+@permission_required("accounts.view_user", raise_exception=True)
+def user_list(request):
+    """Listado con búsqueda y paginación."""
+    q = request.GET.get("q", "").strip()
+    users = User.objects.all().order_by("-date_joined")
+    if q:
+        users = users.filter(username__icontains=q) | users.filter(email__icontains=q)
+
+    paginator = Paginator(users, 10)
+    page = request.GET.get("page")
+    users_page = paginator.get_page(page)
+    return render(request, "accounts/users.html", {"users": users_page, "q": q})
+
+
+@login_required
+@permission_required("accounts.add_user", raise_exception=True)
+def user_create(request):
+    """Crear usuario y asignar roles (grupos)."""
+    from .forms import UserCreateForm
+    if request.method == "POST":
+        form = UserCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"Usuario '{user.username}' creado.")
+            return redirect("accounts:user_list")
+    else:
+        form = UserCreateForm()
+    return render(request, "accounts/user_form.html", {"form": form, "title": "Nuevo usuario"})
+
+
+@login_required
+@permission_required("accounts.change_user", raise_exception=True)
+def user_edit(request, pk: int):
+    """Editar datos de usuario y sus roles."""
+    from .forms import UserUpdateForm
+    user = get_object_or_404(User, pk=pk)
+
+    # Evitar que un usuario no-superuser edite superusuarios
+    if user.is_superuser and not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para editar un superusuario.")
+        return redirect("accounts:user_list")
+
+    if request.method == "POST":
+        form = UserUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Usuario '{user.username}' actualizado.")
+            return redirect("accounts:user_list")
+    else:
+        form = UserUpdateForm(instance=user)
+    return render(request, "accounts/user_form.html", {"form": form, "title": f"Editar: {user.username}"})
+
+
+@login_required
+@permission_required("accounts.delete_user", raise_exception=True)
+def user_delete(request, pk: int):
+    """Eliminar usuario (no permite borrar superusuarios)."""
+    user = get_object_or_404(User, pk=pk)
+
+    if user.is_superuser:
+        messages.error(request, "No puedes eliminar un superusuario.")
+        return redirect("accounts:user_list")
+
+    if request.method == "POST":
+        username = user.username
+        user.delete()
+        messages.success(request, f"Usuario '{username}' eliminado.")
+        return redirect("accounts:user_list")
+    return render(request, "accounts/user_confirm_delete.html", {"user_obj": user})
+
+
 # =========================
 #    VISTAS CRUD CLIENTES
 # =========================

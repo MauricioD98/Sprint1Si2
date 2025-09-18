@@ -38,8 +38,14 @@
       <div class="profile">
         <!-- Usa static para las imágenes -->
         <img src="{% static 'img/person_4.jpg' %}" alt="Image" class="img-fluid">
-        <h3 class="name">Tiago Alcantara</h3>
-        <span class="country">Abogado</span>
+        <h3 class="name">{{ user.username }}</h3>
+        <span class="country">
+        {% if user.is_authenticated and user.groups.all %}
+            {{ user.groups.first.name }}
+        {% else %}
+            Sin rol
+        {% endif %}
+    </span>
       </div>
 
       <div class="nav-menu">
@@ -53,7 +59,7 @@
               <div>
                 <ul>
                   <li><a href="{% url 'accounts:roles_list' %}">Roles</a></li>
-                  <li><a href="#">Usuarios</a></li>
+                  <li><a href="{% url 'accounts:user_list' %}">Usuarios</a></li>
                   <li><a href="#">Crear Usuarios</a></li>
                 </ul>
               </div>
@@ -106,7 +112,9 @@
               <div>
                 <ul>
                   <li><a href="{% url 'casos' %}">Casos</a></li>
+                  <li><a href="{% url 'vista_casos' %}">Vista de casos</a></li>
                   <li><a href="{% url 'expedientes' %}">Expedientes</a></li>
+                  <li><a href="{% url 'vista_expediente' %}">Vista de Expedientes</a></li>
 
                 </ul>
               </div>
